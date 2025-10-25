@@ -2,13 +2,13 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>Проверка игрока</title>
+  <title>Minecraft Проверка</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #1e1e2e;
+      background-color: #0e1015;
       color: #fff;
       display: flex;
       justify-content: center;
@@ -16,95 +16,77 @@
       height: 100vh;
       margin: 0;
     }
-    .container {
-      background: #2a2a3a;
+    .box {
+      text-align: center;
+      background: #1c1f2b;
       padding: 30px;
       border-radius: 16px;
       box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      text-align: center;
+      width: 90%;
       max-width: 400px;
     }
     button {
       background: #00b8ff;
-      color: white;
+      color: #fff;
       border: none;
       padding: 10px 20px;
+      font-size: 16px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 15px;
-      transition: background 0.3s;
+      transition: 0.3s;
     }
-    button:hover { background: #0099dd; }
+    button:hover {
+      background: #0099dd;
+    }
     .hidden { display: none; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="error" class="hidden" style="color:#ff5555; font-size:18px;"></div>
-    <div id="verify-block" class="hidden">
-      <div 
-        class="cf-turnstile" 
-        data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz"
-        data-callback="onCaptchaPassed"
-        data-theme="dark">
-      </div>
-      <br>
-      <button id="confirmBtn" class="hidden">Получить код</button>
-      <p id="status"></p>
+  <div class="box">
+    <h2>Проверка перед входом</h2>
+    <p id="status">Проходим капчу...</p>
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz" data-callback="onCaptchaPassed"></div>
+    <div id="codeBlock" class="hidden">
+      <p>✅ Проверка пройдена!</p>
+      <button id="copyBtn">Скопировать команду</button>
+      <p id="copied" class="hidden">✅ Команда скопирована!</p>
     </div>
   </div>
 
   <script>
-    const token = new URLSearchParams(window.location.search).get('token');
-    const errorEl = document.getElementById('error');
-    const verifyBlock = document.getElementById('verify-block');
-    const button = document.getElementById('confirmBtn');
-    const statusEl = document.getElementById('status');
-    let used = false;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const status = document.getElementById('status');
+    const codeBlock = document.getElementById('codeBlock');
+    const copyBtn = document.getElementById('copyBtn');
+    const copied = document.getElementById('copied');
+    let verifyCode = '';
 
-    // Проверяем токен
-    if (!token || token.length < 32) {
-      errorEl.textContent = "❌ Ошибка: неверный или отсутствующий токен ссылки!";
-      errorEl.classList.remove("hidden");
-    } else {
-      verifyBlock.classList.remove("hidden");
-    }
-
-    // Показываем кнопку только после прохождения капчи
-    function onCaptchaPassed() {
-      button.classList.remove("hidden");
-    }
-
-    // Генерация независимого кода для игры
-    function generateVerifyCode() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let code = "";
-      for (let i = 0; i < 8; i++) {
+    // Генерация сложного случайного кода (до 32 символов)
+    function generateCode() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+=-';
+      let code = '';
+      for (let i = 0; i < 16 + Math.floor(Math.random() * 16); i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return code;
     }
 
-    // Нажатие на кнопку
-    button.addEventListener('click', () => {
-      if (used) {
-        statusEl.textContent = "⚠ Вы уже получили код!";
-        return;
-      }
-      used = true;
-      button.classList.add("hidden");
+    // Когда капча пройдена
+    function onCaptchaPassed() {
+      status.textContent = "⏳ Проверка...";
+      setTimeout(() => {
+        verifyCode = generateCode();
+        status.textContent = "";
+        codeBlock.classList.remove('hidden');
+      }, 1200);
+    }
 
-      const verifyCode = generateVerifyCode();
-
-      // сохраняем код только локально (в браузере)
-      localStorage.setItem("verifyCode", verifyCode);
-      localStorage.setItem("verifyToken", token);
-
-      statusEl.style.color = "#00ffcc";
-      statusEl.innerHTML = `✅ Проверка пройдена!<br>Вернитесь в игру и введите:<br><b>/verify ${verifyCode}</b>`;
-
-      // копируем команду в буфер
-      navigator.clipboard.writeText(`/verify ${verifyCode}`).catch(() => {});
+    // Копировать команду
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(`/verify ${verifyCode}`);
+      copied.classList.remove('hidden');
+      copyBtn.disabled = true;
     });
   </script>
 </body>
