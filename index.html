@@ -30,6 +30,7 @@
       border-radius: 8px;
       cursor: pointer;
       transition: background 0.3s;
+      margin-top: 10px;
     }
     button:hover {
       background: #0099dd;
@@ -40,6 +41,12 @@
       padding: 30px;
       border-radius: 16px;
       box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      max-width: 400px;
+    }
+    #copied {
+      color: #00ffcc;
+      margin-top: 10px;
+      display: none;
     }
   </style>
 </head>
@@ -48,15 +55,17 @@
     <h2>Подтвердите, что вы не бот</h2>
     <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz"></div>
     <br>
-    <button id="confirmBtn">Проверить</button>
+    <button id="confirmBtn">Получить код</button>
+    <button id="copyBtn" style="display:none;">Скопировать команду</button>
+    <p id="copied">Команда скопирована!</p>
     <p id="result"></p>
   </div>
 
   <script>
     function generateCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}';
       let code = '';
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 32; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return code;
@@ -71,9 +80,17 @@
 
       const code = generateCode();
       localStorage.setItem('verifyCode', code);
-      document.getElementById('result').innerHTML =
-        `✅ Капча пройдена!<br>Ваш код подтверждения:<br><b style="font-size:22px;color:#00ffcc;">${code}</b><br><br>
-         Вернитесь в игру и введите команду:<br><b>/verify ${code}</b>`;
+
+      document.getElementById('result').innerHTML = 
+        `✅ Капча пройдена!<br><br>Нажмите ниже, чтобы скопировать команду.`;
+      document.getElementById('confirmBtn').style.display = 'none';
+      document.getElementById('copyBtn').style.display = 'inline-block';
+
+      document.getElementById('copyBtn').addEventListener('click', () => {
+        const command = `/verify ${code}`;
+        navigator.clipboard.writeText(command);
+        document.getElementById('copied').style.display = 'block';
+      });
     });
   </script>
 </body>
