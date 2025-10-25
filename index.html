@@ -24,10 +24,6 @@
       text-align: center;
       max-width: 400px;
     }
-    h2 {
-      margin-bottom: 15px;
-      color: #00b8ff;
-    }
     button {
       background: #00b8ff;
       color: white;
@@ -46,9 +42,14 @@
   <div class="container">
     <div id="error" class="hidden" style="color:#ff5555; font-size:18px;"></div>
     <div id="verify-block" class="hidden">
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz"></div>
+      <div 
+        class="cf-turnstile" 
+        data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz"
+        data-callback="onCaptchaPassed"
+        data-theme="dark">
+      </div>
       <br>
-      <button id="confirmBtn">Получить код</button>
+      <button id="confirmBtn" class="hidden">Получить код</button>
       <p id="status"></p>
     </div>
   </div>
@@ -59,8 +60,9 @@
     const verifyBlock = document.getElementById('verify-block');
     const button = document.getElementById('confirmBtn');
     const statusEl = document.getElementById('status');
+    let used = false;
 
-    // Проверяем токен
+    // Проверка токена
     if (!token || token.length < 32) {
       errorEl.textContent = "❌ Ошибка: неверный или отсутствующий токен ссылки!";
       errorEl.classList.remove("hidden");
@@ -68,25 +70,22 @@
       verifyBlock.classList.remove("hidden");
     }
 
-    let used = false;
+    // Показываем кнопку только после успешной капчи
+    function onCaptchaPassed() {
+      button.classList.remove("hidden");
+    }
 
+    // Действие при нажатии кнопки
     button.addEventListener('click', () => {
-      const cfToken = document.querySelector('[name="cf-turnstile-response"]').value;
-      if (!cfToken) {
-        alert("⚠ Сначала пройдите проверку!");
-        return;
-      }
-
       if (used) {
         statusEl.textContent = "⚠ Вы уже получили код!";
         return;
       }
-
       used = true;
       button.classList.add("hidden");
       statusEl.style.color = "#00ffcc";
       statusEl.innerHTML = `✅ Проверка пройдена!<br>Вернитесь в игру и введите:<br><b>/verify ${token}</b>`;
-      localStorage.setItem("verifiedToken", token);
+      navigator.clipboard.writeText(`/verify ${token}`).catch(() => {});
     });
   </script>
 </body>
