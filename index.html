@@ -1,1 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Проверка — Minecraft Captcha</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e2e;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #00b8ff;
+    }
+    button {
+      background: #00b8ff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0099dd;
+    }
+    .container {
+      text-align: center;
+      background: #2a2a3a;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Подтвердите, что вы не бот</h2>
+    <form id="captchaForm">
+      <input type="hidden" id="code" name="code">
+      <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div>
+      <br>
+      <button type="submit">Подтвердить</button>
+    </form>
+    <p id="status" style="margin-top:15px;"></p>
+  </div>
 
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    document.getElementById('code').value = code;
+
+    document.getElementById('captchaForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const token = document.querySelector('[name="cf-turnstile-response"]').value;
+      if (!token) {
+        alert("Сначала пройдите проверку!");
+        return;
+      }
+
+      document.getElementById("status").innerText = "⏳ Проверка...";
+      try {
+        const res = await fetch('https://YOUR_SERVER_IP_OR_DOMAIN:8081/status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({code, token})
+        });
+        const data = await res.json();
+        document.getElementById("status").innerText = data.message;
+      } catch (err) {
+        document.getElementById("status").innerText = "⚠ Ошибка соединения с сервером!";
+      }
+    });
+  </script>
+</body>
+</html>
