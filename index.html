@@ -62,7 +62,7 @@
     const statusEl = document.getElementById('status');
     let used = false;
 
-    // Проверка токена
+    // Проверяем токен
     if (!token || token.length < 32) {
       errorEl.textContent = "❌ Ошибка: неверный или отсутствующий токен ссылки!";
       errorEl.classList.remove("hidden");
@@ -70,12 +70,22 @@
       verifyBlock.classList.remove("hidden");
     }
 
-    // Показываем кнопку только после успешной капчи
+    // Показываем кнопку только после прохождения капчи
     function onCaptchaPassed() {
       button.classList.remove("hidden");
     }
 
-    // Действие при нажатии кнопки
+    // Генерация независимого кода для игры
+    function generateVerifyCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    // Нажатие на кнопку
     button.addEventListener('click', () => {
       if (used) {
         statusEl.textContent = "⚠ Вы уже получили код!";
@@ -83,9 +93,18 @@
       }
       used = true;
       button.classList.add("hidden");
+
+      const verifyCode = generateVerifyCode();
+
+      // сохраняем код только локально (в браузере)
+      localStorage.setItem("verifyCode", verifyCode);
+      localStorage.setItem("verifyToken", token);
+
       statusEl.style.color = "#00ffcc";
-      statusEl.innerHTML = `✅ Проверка пройдена!<br>Вернитесь в игру и введите:<br><b>/verify ${token}</b>`;
-      navigator.clipboard.writeText(`/verify ${token}`).catch(() => {});
+      statusEl.innerHTML = `✅ Проверка пройдена!<br>Вернитесь в игру и введите:<br><b>/verify ${verifyCode}</b>`;
+
+      // копируем команду в буфер
+      navigator.clipboard.writeText(`/verify ${verifyCode}`).catch(() => {});
     });
   </script>
 </body>
