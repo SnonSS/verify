@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>Minecraft Проверка</title>
+  <title>Проверка входа</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <style>
@@ -43,14 +43,19 @@
 </head>
 <body>
   <div class="box">
-    <h2>Проверка перед входом</h2>
-    <p id="status">Проходим капчу...</p>
+    <h2>Проверка игрока</h2>
+    <p id="status">Проходим Cloudflare проверку...</p>
     <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz" data-callback="onCaptchaPassed"></div>
+
     <div id="codeBlock" class="hidden">
       <p>✅ Проверка пройдена!</p>
+      <p>Ваш код для игры:</p>
+      <pre id="verifyCode" style="font-size:18px;background:#111;padding:10px;border-radius:10px;"></pre>
       <button id="copyBtn">Скопировать команду</button>
-      <p id="copied" class="hidden">✅ Команда скопирована!</p>
+      <p id="copied" class="hidden">✅ Скопировано!</p>
     </div>
+
+    <p id="errorMsg" class="hidden" style="color:red;">❌ Ошибка: неверный токен ссылки!</p>
   </div>
 
   <script>
@@ -58,15 +63,24 @@
     const token = params.get('token');
     const status = document.getElementById('status');
     const codeBlock = document.getElementById('codeBlock');
+    const verifyCodeEl = document.getElementById('verifyCode');
     const copyBtn = document.getElementById('copyBtn');
     const copied = document.getElementById('copied');
+    const errorMsg = document.getElementById('errorMsg');
     let verifyCode = '';
 
-    // Генерация сложного случайного кода (до 32 символов)
+    // Проверяем токен в URL
+    if (!token || token.length < 10) {
+      document.querySelector('.cf-turnstile').classList.add('hidden');
+      status.classList.add('hidden');
+      errorMsg.classList.remove('hidden');
+    }
+
+    // Генерация кода (не совпадает с токеном!)
     function generateCode() {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+=-';
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
       let code = '';
-      for (let i = 0; i < 16 + Math.floor(Math.random() * 16); i++) {
+      for (let i = 0; i < 16; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return code;
@@ -76,13 +90,13 @@
     function onCaptchaPassed() {
       status.textContent = "⏳ Проверка...";
       setTimeout(() => {
-        verifyCode = generateCode();
+        verifyCode = generateCode(); // генерируется новый код, не связанный с токеном
+        verifyCodeEl.textContent = verifyCode;
         status.textContent = "";
         codeBlock.classList.remove('hidden');
       }, 1200);
     }
 
-    // Копировать команду
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(`/verify ${verifyCode}`);
       copied.classList.remove('hidden');
