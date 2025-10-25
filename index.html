@@ -70,7 +70,7 @@
 
       document.getElementById("status").innerText = "⏳ Проверка...";
       try {
-        const res = await fetch('https://localhost:8081/status', {
+        const res = await fetch('http://localhost:8081/status', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({code, token})
