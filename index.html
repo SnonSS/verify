@@ -17,62 +17,49 @@
       height: 100vh;
       margin: 0;
     }
-    h2 {
-      margin-bottom: 20px;
-      color: #00b8ff;
-    }
-    button {
-      background: #00b8ff;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #0099dd;
-    }
     .container {
       text-align: center;
       background: #2a2a3a;
       padding: 30px;
       border-radius: 16px;
       box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      max-width: 400px;
+      max-width: 420px;
     }
-    #copied {
-      color: #00ffcc;
-      margin-top: 10px;
-      display: none;
+    h2 { color: #00b8ff; margin-bottom: 20px; }
+    button {
+      background: #00b8ff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
     }
+    button:hover { background: #0099dd; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Подтвердите, что вы не бот</h2>
+    <div id="info"></div>
     <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz"></div>
     <br>
     <button id="confirmBtn">Получить код</button>
-    <button id="copyBtn" style="display:none;">Скопировать команду</button>
-    <p id="copied">Команда скопирована!</p>
-    <p id="result"></p>
+    <p id="status"></p>
   </div>
 
   <script>
-    let codeGenerated = false; // антиспам — можно только один раз
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const info = document.getElementById("info");
 
-    // генерация безопасного 32-значного кода
-    function generateCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}';
-      let code = '';
-      for (let i = 0; i < 32; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return code;
+    if (!token || token.length < 32) {
+      info.innerHTML = "❌ Ошибка: неверный токен ссылки!";
+      document.getElementById('confirmBtn').disabled = true;
+    } else {
+      info.innerHTML = "Ваш токен: <b style='color:#00ffcc;'>••••••••••••••••••••••••••••••••</b>";
     }
+
+    let used = false;
 
     document.getElementById('confirmBtn').addEventListener('click', () => {
       const cfToken = document.querySelector('[name="cf-turnstile-response"]').value;
@@ -82,27 +69,17 @@
         return;
       }
 
-      if (codeGenerated) {
-        document.getElementById('result').innerHTML =
-          "⚠ Вы уже получили свой код! Используйте его в игре.";
+      if (used) {
+        document.getElementById("status").innerText = "⚠ Вы уже получили код!";
         return;
       }
 
-      // если капча пройдена и код ещё не выдавался
-      const code = generateCode();
-      localStorage.setItem('verifyCode', code);
-      codeGenerated = true;
+      used = true;
+      localStorage.setItem('verifiedToken', token);
 
-      document.getElementById('result').innerHTML =
-        `✅ Проверка пройдена!<br><br>Нажмите ниже, чтобы скопировать команду.`;
-      document.getElementById('confirmBtn').style.display = 'none';
-      document.getElementById('copyBtn').style.display = 'inline-block';
-
-      document.getElementById('copyBtn').onclick = () => {
-        const command = `/verify ${code}`;
-        navigator.clipboard.writeText(command);
-        document.getElementById('copied').style.display = 'block';
-      };
+      document.getElementById("status").innerHTML =
+        `✅ Капча пройдена!<br>Вернитесь в игру и введите:<br><b>/verify ${token}</b>`;
+      document.getElementById('confirmBtn').disabled = true;
     });
   </script>
 </body>
