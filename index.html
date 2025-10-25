@@ -62,11 +62,9 @@
   </div>
 
   <script>
-    const confirmBtn = document.getElementById('confirmBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const result = document.getElementById('result');
-    const copied = document.getElementById('copied');
+    let codeGenerated = false; // антиспам — можно только один раз
 
+    // генерация безопасного 32-значного кода
     function generateCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}';
       let code = '';
@@ -76,40 +74,34 @@
       return code;
     }
 
-    // Проверяем, есть ли уже сохранённый код (чтобы не генерировать снова)
-    const existingCode = localStorage.getItem('verifyCode');
-    if (existingCode) {
-      confirmBtn.style.display = 'none';
-      copyBtn.style.display = 'inline-block';
-      result.innerHTML = `✅ Капча уже пройдена!<br>Вы можете скопировать команду для игры.`;
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(`/verify ${existingCode}`);
-        copied.style.display = 'block';
-      };
-    }
-
-    confirmBtn.addEventListener('click', () => {
+    document.getElementById('confirmBtn').addEventListener('click', () => {
       const cfToken = document.querySelector('[name="cf-turnstile-response"]').value;
+
       if (!cfToken) {
         alert("⚠ Сначала пройдите капчу!");
         return;
       }
 
-      // Если код уже существует — не создаём новый
-      if (localStorage.getItem('verifyCode')) {
-        result.innerHTML = "⚠ Вы уже получили код!";
+      if (codeGenerated) {
+        document.getElementById('result').innerHTML =
+          "⚠ Вы уже получили свой код! Используйте его в игре.";
         return;
       }
 
+      // если капча пройдена и код ещё не выдавался
       const code = generateCode();
       localStorage.setItem('verifyCode', code);
-      confirmBtn.style.display = 'none';
-      copyBtn.style.display = 'inline-block';
-      result.innerHTML = `✅ Капча пройдена!<br>Теперь нажмите ниже, чтобы скопировать команду.`;
+      codeGenerated = true;
 
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(`/verify ${code}`);
-        copied.style.display = 'block';
+      document.getElementById('result').innerHTML =
+        `✅ Проверка пройдена!<br><br>Нажмите ниже, чтобы скопировать команду.`;
+      document.getElementById('confirmBtn').style.display = 'none';
+      document.getElementById('copyBtn').style.display = 'inline-block';
+
+      document.getElementById('copyBtn').onclick = () => {
+        const command = `/verify ${code}`;
+        navigator.clipboard.writeText(command);
+        document.getElementById('copied').style.display = 'block';
       };
     });
   </script>
