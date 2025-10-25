@@ -48,7 +48,7 @@
     <h2>Подтвердите, что вы не бот</h2>
     <form id="captchaForm">
       <input type="hidden" id="code" name="code">
-      <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8pjfuSrNrukgsz"></div>
       <br>
       <button type="submit">Подтвердить</button>
     </form>
@@ -70,7 +70,7 @@
 
       document.getElementById("status").innerText = "⏳ Проверка...";
       try {
-        const res = await fetch('https://YOUR_SERVER_IP_OR_DOMAIN:8081/status', {
+        const res = await fetch('https://65.108.21.163:8081/status', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({code, token})
